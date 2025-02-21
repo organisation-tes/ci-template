@@ -1,36 +1,28 @@
-name: Detect New Repo
+name: Detect Push in Specific Repo
 
 on:
-  repository_dispatch:
-    types: [new-repo]
+  push:
+    branches:
+      - main
 
 jobs:
-  detect-language:
+  trigger-pipeline:
     runs-on: ubuntu-latest
     steps:
-      - name: Extraire le type de projet
+      - name: Vérifier le repo et exécuter le bon pipeline
         run: |
-          REPO_NAME="${{ github.event.client_payload.repository }}"
-          echo "Repository détecté: $REPO_NAME"
+          REPO_NAME="${{ github.repository }}"
+          echo "Push détecté sur: $REPO_NAME"
 
-          # Détection du langage basé sur le nom du repo
-          if [[ "$REPO_NAME" == *"-nodejs" ]]; then
+          if [[ "$REPO_NAME" == "organisation-tes/yassin-nodejs" ]]; then
             WORKFLOW="ci-nodejs.yml"
-          elif [[ "$REPO_NAME" == *"-java" ]]; then
-            WORKFLOW="ci-java.yml"
-          elif [[ "$REPO_NAME" == *"-python" ]]; then
-            WORKFLOW="ci-python.yml"
           else
-            echo "Aucun pipeline trouvé pour ce type de projet."
+            echo "Aucun pipeline défini pour ce repo."
             exit 1
           fi
 
-          echo "Workflow à exécuter: $WORKFLOW"
-          echo "WORKFLOW=$WORKFLOW" >> $GITHUB_ENV
-
-      - name: Déclencher le workflow correspondant
-        run: |
-          curl -X POST -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
-               -H "Accept: application/vnd.github.everest-preview+json" \
+          echo "Lancement de $WORKFLOW..."
+          curl -X POST -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+               -H "Accept: application/vnd.github.v3+json" \
                https://api.github.com/repos/organisation-tes/ci-template/actions/workflows/$WORKFLOW/dispatches \
                -d '{"ref": "main"}'
