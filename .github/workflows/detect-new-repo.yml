@@ -1,26 +1,15 @@
 name: Detect New Repo
-
 on:
   repository_dispatch:
     types: [new-repo]
 
 jobs:
-  trigger-ci:
+  handle-new-repo:
     runs-on: ubuntu-latest
     steps:
-      - name: Extraire le nom du repo
+      - name: Afficher le dépôt créé
+        run: echo "Un nouveau dépôt a été créé : ${{ github.event.client_payload.repository }}"
+
+      - name: Exécuter une action personnalisée
         run: |
-          REPO_NAME="${{ github.event.client_payload.repository }}"
-          echo "Repository créé: $REPO_NAME"
-          
-          if [[ "$REPO_NAME" == *"-nodejs" ]]; then
-            echo "Déclenchement de ci-nodejs.yml"
-            gh workflow run ci-nodejs.yml -R mon-org/$REPO_NAME
-          elif [[ "$REPO_NAME" == *"-java" ]]; then
-            echo "Déclenchement de ci-java.yml"
-            gh workflow run ci-java.yml -R mon-org/$REPO_NAME
-          else
-            echo "Aucun pipeline correspondant"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          echo "Tu peux ajouter ici des actions, comme cloner le repo, lancer un script, etc."
